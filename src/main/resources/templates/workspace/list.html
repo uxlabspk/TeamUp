@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Workspaces | TeamUp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                        dark: '#1F2937',
+                        light: '#F9FAFB'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50">
+<header class="bg-dark text-white">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <a href="/" class="text-2xl font-bold">TeamUp</a>
+        <nav>
+            <ul class="flex space-x-4">
+                <li sec:authorize="isAuthenticated()"><a th:href="@{/dashboard}" class="hover:text-primary">Dashboard</a></li>
+                <li sec:authorize="isAuthenticated()"><a th:href="@{/workspaces}" class="hover:text-primary">Workspaces</a></li>
+                <li sec:authorize="isAuthenticated()"><a th:href="@{/meetings}" class="hover:text-primary">Meetings</a></li>
+                <li sec:authorize="isAnonymous()"><a th:href="@{/login}" class="hover:text-primary">Login</a></li>
+                <li sec:authorize="isAnonymous()"><a th:href="@{/register}" class="hover:text-primary">Register</a></li>
+                <li sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="hover:text-primary">Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">My Workspaces</h1>
+        <a href="/workspaces/create" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm">
+                <span class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Create Workspace
+                </span>
+        </a>
+    </div>
+
+    <!-- Alert Messages -->
+    <div th:if="${successMessage}" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm" role="alert">
+        <p th:text="${successMessage}"></p>
+    </div>
+
+    <div th:if="${errorMessage}" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm" role="alert">
+        <p th:text="${errorMessage}"></p>
+    </div>
+
+    <!-- Workspaces List -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div th:each="workspace : ${workspaces}" class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <!-- Workspace Icon -->
+                    <div th:if="${workspace.icon}" class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                        <span th:text="${workspace.icon}" class="text-xl"></span>
+                    </div>
+                    <div th:unless="${workspace.icon}" class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-800" th:text="${workspace.name}"></h2>
+                </div>
+
+                <p class="text-gray-600 mb-4 line-clamp-2" th:text="${workspace.description ?: 'No description provided.'}"></p>
+
+                <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                            <span th:text="${workspace.members.size()}"></span> members
+                        </span>
+                    <span th:if="${workspace.owner.id == #authentication.principal.id}" class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                            Owner
+                        </span>
+                </div>
+
+                <div class="flex justify-end space-x-2 mt-4">
+                    <a th:href="@{/workspaces/{id}(id=${workspace.id})}" class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        View
+                    </a>
+                    <a th:if="${workspace.owner.id == #authentication.principal.id}" th:href="@{/workspaces/{id}/edit(id=${workspace.id})}" class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Edit
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${workspaces.empty}" class="flex flex-col items-center justify-center bg-white border border-gray-200 rounded-lg p-10 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No workspaces yet</h3>
+        <p class="text-gray-500 mb-6">Create your first workspace to get started with TeamUp</p>
+        <a href="/workspaces/create" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm">
+            Create a Workspace
+        </a>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white py-4">
+    <div class="container mx-auto px-4 text-center">
+        <p>&copy; 2023 TeamUp. All rights reserved.</p>
+    </div>
+</footer>
+
+<!-- Scripts -->
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

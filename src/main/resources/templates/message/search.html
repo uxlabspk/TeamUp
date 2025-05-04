@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Messages | TeamUp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+<!-- Header/Navbar can be included here -->
+<div th:replace="fragments/navbar :: navbar"></div>
+
+<div class="container mx-auto px-4 py-8">
+    <!-- Alert Messages -->
+    <div th:if="${successMessage}" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm" role="alert">
+        <p th:text="${successMessage}"></p>
+    </div>
+
+    <div th:if="${errorMessage}" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm" role="alert">
+        <p th:text="${errorMessage}"></p>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Page Header -->
+        <div class="flex items-center mb-6">
+            <a href="/messages" class="text-blue-600 hover:text-blue-800 mr-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+            </a>
+            <h1 class="text-2xl font-bold text-gray-800">Search Messages</h1>
+        </div>
+
+        <!-- Search Form -->
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mb-6">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <h2 class="text-lg font-medium text-gray-900">Search Criteria</h2>
+            </div>
+            <div class="p-6">
+                <form th:action="@{/messages/search}" method="get" class="space-y-6">
+                    <div class="space-y-2">
+                        <label for="query" class="block text-sm font-medium text-gray-700">Search Term</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <input type="text" name="query" id="query" th:value="${param.query}" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Search in subject or content">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label for="sender" class="block text-sm font-medium text-gray-700">From</label>
+                            <select name="sender" id="sender" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                <option value="">Any Sender</option>
+                                <option th:each="user : ${users}" th:value="${user.id}" th:text="${user.fullName ?: user.username}" th:selected="${param.sender != null && param.sender[0] == user.id.toString()}"></option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="channel" class="block text-sm font-medium text-gray-700">Channel</label>
+                            <select name="channel" id="channel" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                <option value="">Any Channel</option>
+                                <option th:each="channel : ${channels}" th:value="${channel.id}" th:text="${channel.name + ' (' + channel.workspace.name + ')'}" th:selected="${param.channel != null && param.channel[0] == channel.id.toString()}"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label for="startDate" class="block text-sm font-medium text-gray-700">From Date</label>
+                            <input type="date" name="startDate" id="startDate" th:value="${param.startDate}" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="endDate" class="block text-sm font-medium text-gray-700">To Date</label>
+                            <input type="date" name="endDate" id="endDate" th:value="${param.endDate}" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Message Type</label>
+                        <div class="mt-2 space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="types" value="DIRECT" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" th:checked="${param.types != null && #arrays.contains(param.types, 'DIRECT')}">
+                                <span class="ml-2 text-sm text-gray-700">Direct Messages</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="types" value="CHANNEL" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" th:checked="${param.types != null && #arrays.contains(param.types, 'CHANNEL')}">
+                                <span class="ml-2 text-sm text-gray-700">Channel Messages</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="types" value="ANNOUNCEMENT" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" th:checked="${param.types != null && #arrays.contains(param.types, 'ANNOUNCEMENT')}">
+                                <span class="ml-2 text-sm text-gray-700">Announcements</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Has Attachments</label>
+                        <div class="mt-2">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="hasAttachments" value="true" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" th:checked="${param.hasAttachments != null && param.hasAttachments[0] == 'true'}">
+                                <span class="ml-2 text-sm text-gray-700">Only show messages with attachments</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3">
+                        <a th:href="@{/messages/search}" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Clear
+                        </a>
+                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Search Results -->
+        <div th:if="${searchPerformed}" class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                <h2 class="text-lg font-medium text-gray-900">Search Results</h2>
+                <span th:if="${messages != null}" class="text-sm text-gray-500" th:text="${messages.size()} + ' result' + (${messages.size() != 1} ? 's' : '') + ' found'"></span>
+            </div>
+            
+            <div class="divide-y divide-gray-200">
+                <div th:if="${messages != null && !#lists.isEmpty(messages)}">
+                    <div th:each="message : ${messages}" class="p-6 hover:bg-gray-50">
+                        <div class="flex items-start">
+                            <!-- Sender Avatar -->
+                            <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center mr-4">
+                                <span class="text-gray-600 font-medium" th:text="${#strings.substring(message.sender.username, 0, 1).toUpperCase()}"></span>
+                            </div>
+                            
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <a th:href="@{/messages/{id}(id=${message.id})}" class="text-lg font-medium text-gray-900 hover:text-blue-600" th:text="${message.subject ?: 'No Subject'}"></a>
+                                    <span class="text-sm text-gray-500" th:text="${#temporals.format(message.createdAt, 'MMM dd, yyyy h:mm a')}"></span>
+                                </div>
+                                
+                                <div class="flex items-center mt-1">
+                                    <span class="text-sm text-gray-500">From: </span>
+                                    <span class="ml-1 text-sm font-medium text-gray-900" th:text="${message.sender.fullName ?: message.sender.username}"></span>
+                                    
+                                    <span th:if="${message.channel != null}" class="mx-2 text-gray-300">•</span>
+                                    <span th:if="${message.channel != null}" class="text-sm text-gray-500">
+                                        Channel: <a th:href="@{/channels/{id}(id=${message.channel.id})}" class="text-blue-600 hover:text-blue-800" th:text="${message.channel.name}"></a>
+                                    </span>
+                                </div>
+                                
+                                <p class="mt-2 text-sm text-gray-600 line-clamp-2" th:text="${message.content}"></p>
+                                
+                                <!-- Attachments (if any) -->
+                                <div th:if="${message.attachments != null && !#lists.isEmpty(message.attachments)}" class="mt-2 flex flex-wrap">
+                                    <div th:each="attachment : ${message.attachments}" class="inline-flex items-center bg-gray-100 rounded px-2 py-1 text-xs text-gray-800 mr-2 mb-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                        </svg>
+                                        <span th:text="${attachment.fileName}"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Message Actions -->
+                            <div class="ml-4 flex-shrink-0 flex space-x-2">
+                                <a th:href="@{/messages/{id}(id=${message.id})}" class="text-gray-400 hover:text-blue-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Empty Results -->
+                <div th:if="${searchPerformed && (messages == null || #lists.isEmpty(messages))}" class="p-6 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <p class="text-gray-500">No messages found matching your search criteria</p>
+                    <p class="text-sm text-gray-400 mt-2">Try adjusting your search parameters</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer can be included here -->
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

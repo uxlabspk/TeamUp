@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Meeting | TeamUp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+<!-- Header/Navbar can be included here -->
+<div th:replace="fragments/navbar :: navbar"></div>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="flex items-center mb-6">
+            <a th:href="@{/meetings/{id}(id=${meeting.id})}" class="text-blue-600 hover:text-blue-800 mr-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+            </a>
+            <h1 class="text-2xl font-bold text-gray-800">Edit Meeting</h1>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${errorMessage}" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm" role="alert">
+            <p th:text="${errorMessage}"></p>
+        </div>
+
+        <div class="bg-white shadow-sm rounded-lg p-6 border border-gray-200">
+            <form th:action="@{/meetings/{id}/edit(id=${meeting.id})}" th:object="${meeting}" method="post" class="space-y-6">
+                <input type="hidden" th:field="*{id}" />
+                <input type="hidden" th:field="*{creator}" />
+                <input type="hidden" th:field="*{status}" />
+                
+                <div class="space-y-2">
+                    <label for="title" class="block text-sm font-medium text-gray-700">Title*</label>
+                    <input type="text" th:field="*{title}" id="title" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                    <p th:if="${#fields.hasErrors('title')}" class="mt-1 text-sm text-red-600" th:errors="*{title}"></p>
+                </div>
+
+                <div class="space-y-2">
+                    <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea th:field="*{description}" id="description" rows="3" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+                    <p th:if="${#fields.hasErrors('description')}" class="mt-1 text-sm text-red-600" th:errors="*{description}"></p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label for="startTime" class="block text-sm font-medium text-gray-700">Start Date & Time*</label>
+                        <input type="datetime-local" th:field="*{startTime}" id="startTime" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                        <p th:if="${#fields.hasErrors('startTime')}" class="mt-1 text-sm text-red-600" th:errors="*{startTime}"></p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="endTime" class="block text-sm font-medium text-gray-700">End Date & Time*</label>
+                        <input type="datetime-local" th:field="*{endTime}" id="endTime" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                        <p th:if="${#fields.hasErrors('endTime')}" class="mt-1 text-sm text-red-600" th:errors="*{endTime}"></p>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label for="channel" class="block text-sm font-medium text-gray-700">Channel</label>
+                    <select th:field="*{channel}" id="channel" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        <option value="">-- No Channel (Personal Meeting) --</option>
+                        <option th:each="ch : ${channels}" th:value="${ch.id}" th:text="${ch.name + ' (' + ch.workspace.name + ')'}" th:selected="${meeting.channel != null && meeting.channel.id == ch.id}"></option>
+                    </select>
+                    <p th:if="${#fields.hasErrors('channel')}" class="mt-1 text-sm text-red-600" th:errors="*{channel}"></p>
+                    <p class="text-xs text-gray-500">Optional: Associate this meeting with a channel</p>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">Participants</label>
+                    <div class="border border-gray-300 rounded-md shadow-sm p-3 max-h-60 overflow-y-auto">
+                        <div class="space-y-2">
+                            <div th:each="user : ${users}" class="flex items-center">
+                                <input type="checkbox" th:id="${'user-' + user.id}" name="participantIds" th:value="${user.id}" th:checked="${#lists.contains(meeting.participants, user)}" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label th:for="${'user-' + user.id}" class="ml-3 block text-sm font-medium text-gray-700" th:text="${user.fullName ?: user.username}"></label>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500">Select users to invite to this meeting</p>
+                </div>
+
+                <div class="space-y-2">
+                    <label for="meetingCode" class="block text-sm font-medium text-gray-700">Meeting Code</label>
+                    <input type="text" th:field="*{meetingCode}" id="meetingCode" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <p th:if="${#fields.hasErrors('meetingCode')}" class="mt-1 text-sm text-red-600" th:errors="*{meetingCode}"></p>
+                    <p class="text-xs text-gray-500">Optional: Add a meeting code for participants to join</p>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <a th:href="@{/meetings/{id}(id=${meeting.id})}" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Footer can be included here -->
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

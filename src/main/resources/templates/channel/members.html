@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${channel.name} + ' Members | TeamUp'"></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+<!-- Header/Navbar can be included here -->
+<div th:replace="fragments/navbar :: navbar"></div>
+
+<div class="container mx-auto px-4 py-8">
+    <!-- Alert Messages -->
+    <div th:if="${successMessage}" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm" role="alert">
+        <p th:text="${successMessage}"></p>
+    </div>
+
+    <div th:if="${errorMessage}" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm" role="alert">
+        <p th:text="${errorMessage}"></p>
+    </div>
+
+    <!-- Channel Header -->
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
+        <div class="flex items-start justify-between">
+            <div class="flex items-center">
+                <!-- Channel Icon -->
+                <div class="h-14 w-14 rounded-lg bg-blue-100 flex items-center justify-center mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800" th:text="${channel.name}"></h1>
+                    <div class="flex items-center mt-1 text-sm text-gray-500">
+                        <span class="font-medium" th:text="${channel.workspace.name}"></span>
+                        <span class="mx-2">•</span>
+                        <span th:text="${channel.type}"></span>
+                        <span class="mx-2">•</span>
+                        <span th:text="${#temporals.format(channel.createdAt, 'MMM dd, yyyy')}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Channel Content Tabs -->
+    <div class="mb-6">
+        <nav class="flex border-b border-gray-200">
+            <a th:href="@{/channels/{id}(id=${channel.id})}" class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent">Messages</a>
+            <a href="#" class="px-3 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600">Members</a>
+            <!-- Add more tabs as needed for your application -->
+        </nav>
+    </div>
+
+    <!-- Channel Members -->
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+            <h2 class="text-lg font-medium text-gray-900">Members</h2>
+            <div th:if="${isChannelAdmin && channel.type != T(io.github.uxlabspk.teamup.model.Channel.ChannelType).DIRECT}">
+                <button id="addMemberBtn" class="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Add Member
+                </button>
+            </div>
+        </div>
+        
+        <!-- Add Member Modal (hidden by default) -->
+        <div id="addMemberModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3 text-center">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Add Member to Channel</h3>
+                    <div class="mt-2 px-7 py-3">
+                        <form th:action="@{/channels/{id}/members/add(id=${channel.id})}" method="post">
+                            <div class="mb-4">
+                                <label for="userId" class="block text-sm font-medium text-gray-700 text-left mb-2">Select User</label>
+                                <select id="userId" name="userId" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                                    <option value="">-- Select User --</option>
+                                    <option th:each="user : ${availableUsers}" th:value="${user.id}" th:text="${user.fullName ?: user.username}"></option>
+                                </select>
+                            </div>
+                            <div class="flex justify-end space-x-3 mt-4">
+                                <button type="button" id="closeModal" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Add Member
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <div th:if="${members != null && !#lists.isEmpty(members)}">
+                <ul class="divide-y divide-gray-200">
+                    <li th:each="member : ${members}" class="py-4 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <!-- Member Avatar -->
+                            <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                <span class="text-gray-600 font-medium" th:text="${#strings.substring(member.username, 0, 1).toUpperCase()}"></span>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900" th:text="${member.fullName ?: member.username}"></p>
+                                <p class="text-sm text-gray-500" th:text="${member.email}"></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Remove Member Button (only for channel admins and not for direct channels) -->
+                        <div th:if="${isChannelAdmin && channel.type != T(io.github.uxlabspk.teamup.model.Channel.ChannelType).DIRECT && member.id != #authentication.principal.id}">
+                            <form th:action="@{/channels/{channelId}/members/{userId}/remove(channelId=${channel.id},userId=${member.id})}" method="post" onsubmit="return confirm('Are you sure you want to remove this member from the channel?');">
+                                <button type="submit" class="text-red-600 hover:text-red-800">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div th:if="${members == null || #lists.isEmpty(members)}" class="text-center py-8 text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <p>No members in this channel yet</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer can be included here -->
+<div th:replace="fragments/footer :: footer"></div>
+
+<!-- JavaScript for Modal -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addMemberBtn = document.getElementById('addMemberBtn');
+        const addMemberModal = document.getElementById('addMemberModal');
+        const closeModal = document.getElementById('closeModal');
+        
+        if (addMemberBtn) {
+            addMemberBtn.addEventListener('click', function() {
+                addMemberModal.classList.remove('hidden');
+            });
+        }
+        
+        if (closeModal) {
+            closeModal.addEventListener('click', function() {
+                addMemberModal.classList.add('hidden');
+            });
+        }
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            if (event.target === addMemberModal) {
+                addMemberModal.classList.add('hidden');
+            }
+        });
+    });
+</script>
+</body>
+</html>

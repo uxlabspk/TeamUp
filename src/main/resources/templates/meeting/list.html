@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meetings | TeamUp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+<!-- Header/Navbar can be included here -->
+<div th:replace="fragments/navbar :: navbar"></div>
+
+<div class="container mx-auto px-4 py-8">
+    <!-- Alert Messages -->
+    <div th:if="${successMessage}" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm" role="alert">
+        <p th:text="${successMessage}"></p>
+    </div>
+
+    <div th:if="${errorMessage}" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm" role="alert">
+        <p th:text="${errorMessage}"></p>
+    </div>
+
+    <!-- Page Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Meetings</h1>
+        <a th:href="@{/meetings/schedule}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            Schedule Meeting
+        </a>
+    </div>
+
+    <!-- Meeting Tabs -->
+    <div class="mb-6">
+        <nav class="flex border-b border-gray-200">
+            <a href="#" class="px-3 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600">Upcoming</a>
+            <a th:href="@{/meetings/past}" class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent">Past</a>
+            <a th:href="@{/meetings/ongoing}" class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent">Ongoing</a>
+        </nav>
+    </div>
+
+    <!-- Meetings List -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h2 class="text-lg font-medium text-gray-900">Upcoming Meetings</h2>
+        </div>
+        
+        <div class="divide-y divide-gray-200">
+            <div th:if="${meetings != null && !#lists.isEmpty(meetings)}">
+                <div th:each="meeting : ${meetings}" class="p-6 hover:bg-gray-50">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900">
+                                <a th:href="@{/meetings/{id}(id=${meeting.id})}" class="hover:text-blue-600" th:text="${meeting.title}"></a>
+                            </h3>
+                            <div class="mt-1 flex items-center text-sm text-gray-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span th:text="${#temporals.format(meeting.startTime, 'EEEE, MMM dd, yyyy')}"></span>
+                                <span class="mx-2">•</span>
+                                <span th:text="${#temporals.format(meeting.startTime, 'h:mm a')} + ' - ' + ${#temporals.format(meeting.endTime, 'h:mm a')}"></span>
+                            </div>
+                            <div class="mt-2 text-sm text-gray-600" th:text="${meeting.description ?: 'No description provided.'}"></div>
+                            
+                            <!-- Organizer and Workspace Info -->
+                            <div class="mt-3 flex items-center text-xs text-gray-500">
+                                <span>Organized by </span>
+                                <span class="ml-1 font-medium" th:text="${meeting.organizer.fullName ?: meeting.organizer.username}"></span>
+                                <span th:if="${meeting.channel != null}" class="mx-2">•</span>
+                                <span th:if="${meeting.channel != null}">
+                                    <span>Channel: </span>
+                                    <a th:href="@{/channels/{id}(id=${meeting.channel.id})}" class="font-medium text-blue-600 hover:text-blue-800" th:text="${meeting.channel.name}"></a>
+                                </span>
+                            </div>
+                            
+                            <!-- Participant Count -->
+                            <div class="mt-3 flex items-center">
+                                <div class="flex -space-x-2 overflow-hidden">
+                                    <div th:each="participant, iterStat : ${meeting.participants}" th:if="${iterStat.index < 3}" class="inline-block h-6 w-6 rounded-full bg-gray-200 border border-white flex items-center justify-center text-xs font-medium text-gray-600" th:text="${#strings.substring(participant.username, 0, 1).toUpperCase()}"></div>
+                                </div>
+                                <span class="ml-2 text-xs text-gray-500" th:text="${meeting.participants.size()} + ' participant' + (${meeting.participants.size() != 1} ? 's' : '')"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <a th:href="@{/meetings/{id}/join(id=${meeting.id})}" th:if="${meeting.status == T(io.github.uxlabspk.teamup.model.Meeting.MeetingStatus).SCHEDULED}" class="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                Join
+                            </a>
+                            <a th:href="@{/meetings/{id}/edit(id=${meeting.id})}" th:if="${meeting.organizer.id == #authentication.principal.id}" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Edit
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Empty State -->
+            <div th:if="${meetings == null || #lists.isEmpty(meetings)}" class="p-6 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p class="text-gray-500">No upcoming meetings found</p>
+                <a th:href="@{/meetings/schedule}" class="mt-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Schedule a Meeting
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer can be included here -->
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

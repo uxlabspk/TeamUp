@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${workspace.name} + ' Members | TeamUp'"></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+<!-- Header/Navbar can be included here -->
+<div th:replace="fragments/navbar :: navbar"></div>
+
+<div class="container mx-auto px-4 py-8">
+    <!-- Alert Messages -->
+    <div th:if="${successMessage}" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm" role="alert">
+        <p th:text="${successMessage}"></p>
+    </div>
+
+    <div th:if="${errorMessage}" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm" role="alert">
+        <p th:text="${errorMessage}"></p>
+    </div>
+
+    <!-- Workspace Header -->
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
+        <div class="flex items-center">
+            <a th:href="@{/workspaces/{id}(id=${workspace.id})}" class="text-blue-600 hover:text-blue-800 mr-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+            </a>
+            <div th:if="${workspace.icon}" class="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center mr-3 text-xl">
+                <span th:text="${workspace.icon}"></span>
+            </div>
+            <div th:unless="${workspace.icon}" class="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-gray-800" th:text="${workspace.name} + ' Members'"></h1>
+                <div class="text-sm text-gray-500">
+                    <span th:text="${members.size()}"></span> members
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workspace Content Tabs -->
+    <div class="mb-6">
+        <nav class="flex border-b border-gray-200">
+            <a th:href="@{/workspaces/{id}(id=${workspace.id})}" class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent">Overview</a>
+            <a href="#" class="px-3 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600">Members</a>
+            <!-- Add more tabs as needed for your application -->
+        </nav>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Members List -->
+        <div class="md:col-span-2">
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                    <h2 class="text-lg font-medium text-gray-900">Current Members</h2>
+                    <span class="text-sm text-gray-500">
+                            <span th:text="${members.size()}"></span> members
+                        </span>
+                </div>
+                <div class="divide-y divide-gray-200">
+                    <div th:each="member : ${members}" class="px-6 py-4 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <!-- Member Avatar -->
+                            <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                <span class="text-gray-600 font-medium" th:text="${#strings.substring(member.username, 0, 1).toUpperCase()}"></span>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900" th:text="${member.fullName ?: member.username}"></p>
+                                <p class="text-sm text-gray-500" th:text="${member.email}"></p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-3">
+                                <span th:if="${member.id == workspace.owner.id}" class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">
+                                    Owner
+                                </span>
+
+                            <!-- Remove Member Button (only visible to owner and not for themselves) -->
+                            <form th:if="${workspace.owner.id == #authentication.principal.id && member.id != workspace.owner.id}"
+                                  th:action="@{/workspaces/{id}/members/remove(id=${workspace.id})}"
+                                  method="post"
+                                  class="inline-block">
+                                <input type="hidden" name="userId" th:value="${member.id}" />
+                                <button type="submit" class="px-2 py-1 text-xs text-red-600 hover:text-red-800 focus:outline-none"
+                                        onclick="return confirm('Are you sure you want to remove this member?');">
+                                    Remove
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div th:if="${members.empty}" class="p-6 text-center text-gray-500">
+                        <p>No members found</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Members Section (Only visible to workspace owner) -->
+        <div th:if="${workspace.owner.id == #authentication.principal.id}" class="md:col-span-1">
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h2 class="text-lg font-medium text-gray-900">Add Members</h2>
+                </div>
+                <div class="p-6">
+                    <form th:action="@{/workspaces/{id}/members/add(id=${workspace.id})}" method="post" class="space-y-5">
+                        <div>
+                            <label for="userId" class="block text-sm font-medium text-gray-700 mb-1">Select User</label>
+                            <select id="userId" name="userId" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                <option value="">-- Select User --</option>
+                                <!-- Filter out users who are already members -->
+                                <option th:each="user : ${allUsers}"
+                                        th:if="${!members.contains(user)}"
+                                        th:value="${user.id}"
+                                        th:text="${user.fullName ?: user.username}"></option>
+                            </select>
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Add Member
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Empty state for when all users are already members -->
+                    <div th:if="${allUsers.size() == members.size()}" class="text-center py-4 text-gray-500">
+                        <p>All users are already members of this workspace</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Owner Information -->
+            <div class="mt-6 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h2 class="text-lg font-medium text-gray-900">Workspace Owner</h2>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                            <span class="text-purple-600 font-medium" th:text="${#strings.substring(workspace.owner.username, 0, 1).toUpperCase()}"></span>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900" th:text="${workspace.owner.fullName ?: workspace.owner.username}"></p>
+                            <p class="text-sm text-gray-500" th:text="${workspace.owner.email}"></p>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-sm text-gray-500">
+                        <p>As the workspace owner, you can add or remove members and manage workspace settings.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer can be included here -->
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

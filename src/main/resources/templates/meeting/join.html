@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${meeting.title} + ' | Join Meeting | TeamUp'"></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+<!-- Header/Navbar can be included here -->
+<div th:replace="fragments/navbar :: navbar"></div>
+
+<div class="container mx-auto px-4 py-8">
+    <!-- Alert Messages -->
+    <div th:if="${successMessage}" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm" role="alert">
+        <p th:text="${successMessage}"></p>
+    </div>
+
+    <div th:if="${errorMessage}" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm" role="alert">
+        <p th:text="${errorMessage}"></p>
+    </div>
+
+    <div class="max-w-3xl mx-auto">
+        <!-- Meeting Header -->
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
+            <div class="flex items-start justify-between">
+                <div>
+                    <div class="flex items-center">
+                        <a th:href="@{/meetings/{id}(id=${meeting.id})}" class="text-blue-600 hover:text-blue-800 mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                        <h1 class="text-2xl font-bold text-gray-800" th:text="${meeting.title}"></h1>
+                    </div>
+                    <div class="mt-2 flex items-center text-sm text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span th:text="${#temporals.format(meeting.startTime, 'EEEE, MMM dd, yyyy')}"></span>
+                        <span class="mx-2">•</span>
+                        <span th:text="${#temporals.format(meeting.startTime, 'h:mm a')} + ' - ' + ${#temporals.format(meeting.endTime, 'h:mm a')}"></span>
+                        <span class="mx-2">•</span>
+                        <span th:if="${meeting.status == T(io.github.uxlabspk.teamup.model.Meeting.MeetingStatus).SCHEDULED}" class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800">Scheduled</span>
+                        <span th:if="${meeting.status == T(io.github.uxlabspk.teamup.model.Meeting.MeetingStatus).ONGOING}" class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">Ongoing</span>
+                    </div>
+                    <div class="mt-2 text-sm text-gray-500">
+                        <span>Organized by </span>
+                        <span class="font-medium" th:text="${meeting.creator.fullName ?: meeting.creator.username}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Conference Area -->
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mb-6">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <h2 class="text-lg font-medium text-gray-900">Video Conference</h2>
+            </div>
+            <div class="p-6">
+                <!-- This would be replaced with actual video conference implementation -->
+                <div class="aspect-w-16 aspect-h-9 bg-gray-800 rounded-lg overflow-hidden mb-4">
+                    <div class="flex items-center justify-center h-full">
+                        <div class="text-center text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <p class="text-lg font-medium">Video conference will appear here</p>
+                            <p class="text-sm text-gray-400 mt-2">Waiting for the meeting to start...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Controls -->
+                <div class="flex justify-center space-x-4">
+                    <button class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                        </svg>
+                        Toggle Camera
+                    </button>
+                    <button class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd" />
+                        </svg>
+                        Toggle Mic
+                    </button>
+                    <button class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm1 3a1 1 0 011-1h12a1 1 0 110 2H5a1 1 0 01-1-1zm1 3a1 1 0 011-1h12a1 1 0 110 2H6a1 1 0 01-1-1zm0 3a1 1 0 011-1h12a1 1 0 110 2H5a1 1 0 01-1-1z" clip-rule="evenodd" />
+                        </svg>
+                        Chat
+                    </button>
+                    <button class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                        </svg>
+                        Leave Meeting
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Participants -->
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                <h2 class="text-lg font-medium text-gray-900">Participants</h2>
+                <span class="text-sm text-gray-500" th:text="${meeting.participants.size()} + ' ' + (${meeting.participants.size() == 1 ? 'person' : 'people'})"></span>
+            </div>
+            <div class="p-6">
+                <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <li th:each="participant : ${meeting.participants}" class="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <!-- Participant Avatar -->
+                        <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                            <span class="text-gray-600 font-medium" th:text="${#strings.substring(participant.username, 0, 1).toUpperCase()}"></span>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900" th:text="${participant.fullName ?: participant.username}"></p>
+                            <div class="flex items-center">
+                                <span th:if="${participant.id == meeting.creator.id}" class="text-xs text-purple-800">Organizer</span>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer can be included here -->
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

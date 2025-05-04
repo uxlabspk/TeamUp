@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${workspace.name} + ' | TeamUp'"></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+<!-- Header/Navbar can be included here -->
+<div th:replace="fragments/navbar :: navbar"></div>
+
+<div class="container mx-auto px-4 py-8">
+    <!-- Alert Messages -->
+    <div th:if="${successMessage}" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm" role="alert">
+        <p th:text="${successMessage}"></p>
+    </div>
+
+    <div th:if="${errorMessage}" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm" role="alert">
+        <p th:text="${errorMessage}"></p>
+    </div>
+
+    <!-- Workspace Header -->
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
+        <div class="flex items-start justify-between">
+            <div class="flex items-center">
+                <!-- Workspace Icon -->
+                <div th:if="${workspace.icon}" class="h-14 w-14 rounded-lg bg-blue-100 flex items-center justify-center mr-4 text-2xl">
+                    <span th:text="${workspace.icon}"></span>
+                </div>
+                <div th:unless="${workspace.icon}" class="h-14 w-14 rounded-lg bg-blue-100 flex items-center justify-center mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800" th:text="${workspace.name}"></h1>
+                    <div class="flex items-center mt-1 text-sm text-gray-500">
+                        <span>Owned by </span>
+                        <span class="ml-1 font-medium" th:text="${workspace.owner.fullName ?: workspace.owner.username}"></span>
+                        <span class="mx-2">•</span>
+                        <span th:text="${#dates.format(workspace.createdAt, 'MMM dd, yyyy')}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${workspace.owner.id == #authentication.principal.id}" class="flex space-x-2">
+                <a th:href="@{/workspaces/{id}/edit(id=${workspace.id})}" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Edit
+                </a>
+                <form th:action="@{/workspaces/{id}/delete(id=${workspace.id})}" method="post" onsubmit="return confirm('Are you sure you want to delete this workspace? This action cannot be undone.');">
+                    <button type="submit" class="inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <p class="text-gray-600" th:text="${workspace.description ?: 'No description provided.'}"></p>
+        </div>
+    </div>
+
+    <!-- Workspace Content Tabs -->
+    <div class="mb-6">
+        <nav class="flex border-b border-gray-200">
+            <a href="#" class="px-3 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600">Overview</a>
+            <a th:href="@{/workspaces/{id}/members(id=${workspace.id})}" class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent">Members</a>
+            <!-- Add more tabs as needed for your application -->
+        </nav>
+    </div>
+
+    <!-- Workspace Overview -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Projects Section -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h2 class="text-lg font-medium text-gray-900">Projects</h2>
+                </div>
+                <div class="p-6">
+                    <!-- This would be populated with projects data in a real application -->
+                    <div class="text-center py-8 text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        <p>No projects created yet</p>
+                        <button class="mt-3 inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            Create Project
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Section -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h2 class="text-lg font-medium text-gray-900">Recent Tasks</h2>
+                </div>
+                <div class="p-6">
+                    <!-- This would be populated with tasks data in a real application -->
+                    <div class="text-center py-8 text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        <p>No tasks yet</p>
+                        <button class="mt-3 inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            Create Task
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Members Preview -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                    <h2 class="text-lg font-medium text-gray-900">Members</h2>
+                    <a th:href="@{/workspaces/{id}/members(id=${workspace.id})}" class="text-sm text-blue-600 hover:text-blue-500">View all</a>
+                </div>
+                <div class="p-6">
+                    <ul class="divide-y divide-gray-200">
+                        <li th:each="member, iterStat : ${members}" th:if="${iterStat.index < 5}" class="py-4 flex">
+                            <!-- Member Avatar -->
+                            <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                <span class="text-gray-600 font-medium" th:text="${#strings.substring(member.username, 0, 1).toUpperCase()}"></span>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900" th:text="${member.fullName ?: member.username}"></p>
+                                <p class="text-sm text-gray-500" th:text="${member.email}"></p>
+                            </div>
+                            <div class="ml-auto flex items-center" th:if="${member.id == workspace.owner.id}">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">
+                                        Owner
+                                    </span>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <div th:if="${members.size() > 5}" class="mt-4 text-center">
+                        <a th:href="@{/workspaces/{id}/members(id=${workspace.id})}" class="text-sm text-blue-600 hover:text-blue-500">
+                            View all <span th:text="${members.size()}"></span> members
+                        </a>
+                    </div>
+
+                    <div th:if="${members.empty}" class="text-center py-6 text-gray-500">
+                        <p>No members found</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workspace Activity -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h2 class="text-lg font-medium text-gray-900">Recent Activity</h2>
+                </div>
+                <div class="p-6">
+                    <!-- This would be populated with activity data in a real application -->
+                    <div class="text-center py-6 text-gray-500">
+                        <p>No recent activity</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer can be included here -->
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>
