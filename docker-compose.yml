@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: teamup-postgres
+    environment:
+      POSTGRES_DB: teamup_db
+      POSTGRES_USER: teamup_user
+      POSTGRES_PASSWORD: teamup_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - teamup-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teamup_user -d teamup_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: teamup-livekit
+    command: --dev
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+    networks:
+      - teamup-network
+    environment:
+      LIVEKIT_KEYS: "devkey: secret"
+
+  teamup-app:
+    build: .
+    container_name: teamup-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/teamup_db
+      SPRING_DATASOURCE_USERNAME: teamup_user
+      SPRING_DATASOURCE_PASSWORD: teamup_pass
+      JWT_SECRET: ProductionSecretKeyChangeThis123456789
+      LIVEKIT_API_KEY: devkey
+      LIVEKIT_API_SECRET: secret
+      LIVEKIT_URL: ws://livekit:7880
+    networks:
+      - teamup-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  teamup-network:
+    driver: bridge
+

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting - TeamUp</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://unpkg.com/livekit-client/dist/livekit-client.umd.min.js"></script>
+</head>
+<body>
+    <div class="meeting-container">
+        <div class="meeting-header">
+            <h2>Video Meeting</h2>
+            <div class="meeting-controls">
+                <button id="toggle-video" class="control-btn">📹</button>
+                <button id="toggle-audio" class="control-btn">🎤</button>
+                <button id="share-screen" class="control-btn">🖥️</button>
+                <button id="leave-meeting" class="control-btn danger">📞 Leave</button>
+            </div>
+        </div>
+
+        <div class="video-grid" id="video-grid">
+            <!-- Participant videos will be added here -->
+        </div>
+
+        <div class="participants-panel">
+            <h3>Participants</h3>
+            <div id="participants-list">
+                <!-- Participant list -->
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const meetingId = /*[[${meetingId}]]*/ null;
+    </script>
+    <script th:src="@{/js/meeting.js}"></script>
+</body>
+</html>
+

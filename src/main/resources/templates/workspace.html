@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workspace - TeamUp</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>TeamUp</h2>
+                <button id="theme-toggle" class="icon-btn">🌙</button>
+            </div>
+
+            <div class="workspaces-list">
+                <h3>Workspaces</h3>
+                <div id="workspaces-container">
+                    <!-- Workspaces will be loaded here -->
+                    <p style="color: var(--text-secondary); padding: 10px;">Loading workspaces...</p>
+                </div>
+                <button id="create-workspace-btn" class="btn btn-secondary">+ New Workspace</button>
+            </div>
+
+            <div class="channels-list" id="channels-container">
+                <h3>Channels</h3>
+                <!-- Channels for selected workspace -->
+            </div>
+
+            <div class="user-profile">
+                <div class="user-info">
+                    <span id="user-name"></span>
+                    <span id="user-status" class="status-indicator"></span>
+                </div>
+                <button id="logout-btn" class="icon-btn">🚪</button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h2 id="channel-name">Select a channel</h2>
+                    <div class="header-actions">
+                        <button id="start-meeting-btn" class="btn btn-primary">📹 Start Meeting</button>
+                    </div>
+                </div>
+
+                <div class="messages-container" id="messages-container">
+                    <!-- Messages will appear here -->
+                </div>
+
+                <div class="message-input-container">
+                    <form id="message-form">
+                        <input type="file" id="file-input" style="display: none;">
+                        <button type="button" id="attach-btn" class="icon-btn">📎</button>
+                        <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off">
+                        <button type="submit" class="btn btn-primary">Send</button>
+                    </form>
+                    <div id="typing-indicator" class="typing-indicator" style="display: none;">
+                        Someone is typing...
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stomp-websocket@2.3.4/lib/stomp.min.js"></script>
+    <script th:src="@{/js/workspace.js}"></script>
+</body>
+</html>
+
